@@ -107,9 +107,21 @@ function updateBadge() {
   el.playerInput.disabled = state.demo;
 }
 
+// Static hosting (GitHub Pages, an artifact preview, file://) has no /api.
+async function hasBackend() {
+  try {
+    const r = await fetch("/api/health");
+    return r.ok && (await r.json()).ok === true;
+  } catch { return false; }
+}
+
+const STATIC_NOTE = "静态预览：当前页面没有连接后端，下面是程序生成的合成演示数据，不是真实比赛。" +
+  "要看真实 NBA 数据，请在本机运行 `uvicorn backend.server:app` 后打开 http://localhost:8000。";
+
 function fallbackToDemo(err) {
   state.demo = true;
   updateBadge();
+  if (!backendUp) { setStatus(STATIC_NOTE); return; }
   setStatus(
     `无法从 stats.nba.com 获取数据（${err.message.slice(0, 140)}…）。已切换到离线演示模式：下面是程序生成的合成数据，不是真实比赛。` +
     `请在本机运行 \`uvicorn backend.server:app\`，然后点 DEMO 关闭演示模式重试。`,
@@ -135,7 +147,7 @@ let seasonToken = 0;
 async function loadSeason() {
   const token = ++seasonToken;
   pause();
-  setStatus(state.demo ? "" : "读取中 LOADING… 首次请求 stats.nba.com 可能要几秒。");
+  if (!state.demo) setStatus("读取中 LOADING… 首次请求 stats.nba.com 可能要几秒。");
   let shots = null, games = null;
   if (!state.demo) {
     const q = `player_id=${state.player.id}&season=${state.season}&season_type=${encodeURIComponent(state.seasonType)}`;
@@ -210,7 +222,7 @@ function syncUrl() {
   if (state.seasonType !== "Regular Season") p.set("type", state.seasonType);
   if (state.gameId) p.set("game", state.gameId);
   p.set("mode", state.mode);
-  history.replaceState(null, "", `?${p}`);
+  try { history.replaceState(null, "", `?${p}`); } catch { /* sandboxed preview frames may refuse */ }
 }
 
 // ------------------------------------------------------------------ replay model
@@ -1055,4 +1067,14 @@ setMode(state.mode);
 setView(state.view);
 updateBadge();
 requestAnimationFrame(frame);
-loadSeason();
+let backendUp = true;
+(async () => {
+  if (!state.demo) {
+    backendUp = await hasBackend();
+    if (!backendUp) fallbackToDemo();
+  } else if (location.protocol === "file:") {
+    backendUp = false;
+    setStatus(STATIC_NOTE);
+  }
+  loadSeason();
+})();
