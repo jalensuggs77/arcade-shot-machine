@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arcade Shot Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="fire" aria-hidden="true"></canvas>
+  <div class="crt" aria-hidden="true"></div>
+
+  <div class="app" id="app">
+    <header class="marquee">
+      <div>
+        <h1>ARCADE SHOT MACHINE</h1>
+        <p>NBA 球星投篮热区 · 时光机</p>
+      </div>
+      <span id="source-badge" class="badge">…</span>
+    </header>
+
+    <section class="controls">
+      <div class="field player">
+        <label for="player-input">球员 PLAYER</label>
+        <input id="player-input" autocomplete="off" spellcheck="false" placeholder="Stephen Curry">
+        <ul id="player-list" role="listbox" hidden></ul>
+      </div>
+      <div class="field">
+        <label for="season">赛季 SEASON</label>
+        <select id="season"></select>
+      </div>
+      <div class="field">
+        <label for="season-type">类型 TYPE</label>
+        <select id="season-type">
+          <option value="Regular Season">常规赛</option>
+          <option value="Playoffs">季后赛</option>
+        </select>
+      </div>
+      <div class="tabs" role="tablist">
+        <button data-mode="heat" role="tab">热区 HEAT</button>
+        <button data-mode="replay" role="tab">时光机 REPLAY</button>
+      </div>
+      <div class="field game">
+        <label for="game">比赛 GAME</label>
+        <select id="game"></select>
+      </div>
+      <button id="demo-toggle" class="pill" title="切换离线演示数据">DEMO</button>
+    </section>
+
+    <div id="status" class="status" hidden></div>
+
+    <main>
+      <div class="court-wrap" id="court-wrap">
+        <canvas id="court"></canvas>
+        <div id="banners"></div>
+        <div id="tooltip" class="tooltip" hidden></div>
+      </div>
+
+      <aside>
+        <div class="scoreboard" id="scoreboard">
+          <div class="sb-player" id="sb-player">—</div>
+          <div class="sb-sub" id="sb-sub">&nbsp;</div>
+          <div class="sb-grid">
+            <div><span class="k">PTS</span><span class="v big" id="sb-pts">0</span></div>
+            <div><span class="k">CLOCK</span><span class="v" id="sb-clock">Q1 12:00</span></div>
+            <div><span class="k">FG</span><span class="v" id="sb-fg">0/0</span></div>
+            <div><span class="k">3PT</span><span class="v" id="sb-3p">0/0</span></div>
+            <div><span class="k">FT</span><span class="v" id="sb-ft">0/0</span></div>
+            <div><span class="k">COMBO</span><span class="v" id="sb-combo">x0</span></div>
+          </div>
+          <div class="heat-meter" aria-label="热度">
+            <div class="heat-fill" id="heat-fill"></div>
+            <span class="heat-label" id="heat-label">COLD</span>
+          </div>
+        </div>
+
+        <div class="panel" id="legend"></div>
+
+        <div class="panel">
+          <h2>分区命中 ZONES</h2>
+          <table class="zones" id="zones"></table>
+        </div>
+
+        <div class="panel feed-panel" id="feed-panel">
+          <h2>回放日志 PLAY LOG</h2>
+          <ol id="feed"></ol>
+        </div>
+      </aside>
+    </main>
+
+    <section class="timeline">
+      <div class="transport">
+        <button id="btn-prev" title="上一次出手 (←)">⏮</button>
+        <button id="btn-play" class="play" title="播放/暂停 (空格)">▶</button>
+        <button id="btn-next" title="下一次出手 (→)">⏭</button>
+        <label class="speed">速度
+          <select id="speed"></select>
+        </label>
+        <button id="btn-burst" class="pill hot" title="跳到下一段得分爆发">🔥 下一段爆发</button>
+        <span class="spacer"></span>
+        <div class="seg" id="view-toggle">
+          <button data-view="hex">热区</button>
+          <button data-view="dots">落点</button>
+        </div>
+        <button id="btn-sound" class="pill" title="音效">🔊</button>
+      </div>
+      <canvas id="timeline"></canvas>
+      <p class="hint" id="timeline-hint"></p>
+    </section>
+
+    <footer>
+      数据：<a href="https://github.com/swar/nba_api" target="_blank" rel="noopener">nba_api</a>
+      → stats.nba.com（shotchartdetail / playergamelog / playbyplayv3）。非官方接口，仅供学习研究。
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
